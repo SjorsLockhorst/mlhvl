@@ -117,6 +117,20 @@ show_training_plots(history)
 # %%
 evaluate_model(model, x_test_flat, y_test)
 
+
+
+# %%  [markdown]
+"""
+### Question 2
+
+1. At the first epoch, we can see that the training accuracy is lower than the validation accuracy, and conversely, the training loss is higher than the validation loss.
+This might be due to the fact that the validation set is much smaller, thus has less varation within the dataset to be captured by the model. Since the training set is larger, there's a bigger chance that edge cases occur in it, that might be misclassified when the model hasn't training much yet.
+2. Then we see that the training accuracy increases, and the training loss decreases rapidly in the first epochs. The validation loss also decreases, and the accuracy also increases, but not nearly as quickly.
+This might be due to the fact that the model learns the features from the training set.  These features might not initially generalise too well to the validation set, but instantly perform way better on the images on which is was trained. In a way it tends towards overfitting to the training set.
+3. Then we see that the training accuracy keeps on increases, and the loss decreasing, as the amount of epochs increase. The loss and accuracy of the validation set plateaus after around epoch 3.
+This might be due to the fact that the model overfits to the training data over time, while not learning abstract enough features that generalise to the validation set. The features that are learned are specific to the traning data, and thus score high on them. But the features might be idiosyncratic to the training set, and not be a general feature for the entire spectrum of digits, e.g. digits in the validation set.
+"""
+
 # %%
 # Model definition
 relu_model = keras.Sequential()
