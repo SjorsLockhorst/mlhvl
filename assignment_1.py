@@ -4,6 +4,8 @@ import os
 from tensorflow import keras
 import tensorflow as tf
 import numpy as np
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
 
 import matplotlib.pyplot as plt
 
@@ -14,8 +16,6 @@ np.random.seed(42)
 tf.random.set_seed(42)
 
 # %%
-
-
 def show_training_plots(history):
     plt.figure(figsize=(12, 4))
 
@@ -117,7 +117,21 @@ show_training_plots(history)
 # %%
 evaluate_model(model, x_test_flat, y_test)
 
+# %% 
+y_pred = model.predict(x_test_flat)
+y_pred_classes = np.argmax(y_pred, axis=1)
 
+# Compute the Confusion Matrix
+conf_matrix = confusion_matrix(y_test_raw, y_pred_classes)
+
+# Plot the Confusion Matrix
+
+plt.figure(figsize=(10, 8))
+sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues')
+plt.xlabel('Predicted Label')
+plt.ylabel('True Label')
+plt.title('Confusion Matrix')
+plt.show()
 
 # %%  [markdown]
 """
