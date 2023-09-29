@@ -1,4 +1,6 @@
 # %%
+from keras.preprocessing.image import load_img, img_to_array
+import matplotlib.image
 import os
 
 from tensorflow import keras
@@ -16,6 +18,8 @@ np.random.seed(42)
 tf.random.set_seed(42)
 
 # %%
+
+
 def show_training_plots(history):
     plt.figure(figsize=(12, 4))
 
@@ -73,8 +77,7 @@ plt.imshow(eight, cmap="gray")
 plt.show()
 
 
-# %% 
-import matplotlib.image
+# %%
 
 matplotlib.image.imsave('eight.png', eight)
 
@@ -132,7 +135,7 @@ show_training_plots(history)
 # %%
 evaluate_model(model, x_test_flat, y_test)
 
-# %% 
+# %%
 y_pred = model.predict(x_test_flat)
 y_pred_classes = np.argmax(y_pred, axis=1)
 
@@ -275,7 +278,8 @@ evaluate_model(dropout_cnn_model, x_test_spatial, y_test)
 """
 
 # %%
-(x_train_cifar, y_train_cifar), (x_test_cifar, y_test_cifar) = keras.datasets.cifar10.load_data()
+(x_train_cifar, y_train_cifar), (x_test_cifar,
+                                 y_test_cifar) = keras.datasets.cifar10.load_data()
 
 # %%
 x_train_cifar = x_train_cifar / 255
@@ -314,7 +318,8 @@ cifar_cnn.add(keras.layers.Dense(10, activation="softmax"))
 
 cifar_cnn.compile(
     loss='categorical_crossentropy',
-    optimizer=keras.optimizers.RMSprop(learning_rate=0.0001, weight_decay=1e-6),
+    optimizer=keras.optimizers.RMSprop(
+        learning_rate=0.0001, weight_decay=1e-6),
     metrics='accuracy'
 )
 
@@ -329,5 +334,148 @@ cifar_cnn_history = cifar_cnn.fit(
     shuffle=True
 )
 
-# %% 
+# %%
 show_training_plots(cifar_cnn_history)
+
+
+# %%  [markdown]
+"""
+Low level functions
+"""
+
+
+# img = img_to_array(load_img("eight.png", color_mode="grayscale")) / 255
+img = img_to_array(load_img("eight.png")) / 255
+# Change dims from 28 28 1 to 28 28 3
+# img = np.repeat(img, 3, axis=2)
+img.shape
+
+# %%
+
+
+def relu(x):
+    """
+    Rectified linear unit activation function.
+
+    Parameters
+    ----------
+    x: np.ndarray, shape=(height, width, feature_maps)
+        Input array to apply ReLU to ().
+
+    Returns
+    -------
+    np.ndarray
+        Output array with ReLU applied.
+    """
+    return np.maximum(x, 0)
+
+
+relu_img = relu(img)
+relu_img.shape
+# %%
+
+
+def max_pooling(x, pool_size):
+    """
+    Max pooling function.
+    
+    Finds the maximum value within each feature map.
+
+    Parameters
+    ----------
+    x: np.ndarray, shape=(height, width, feature_maps)
+        Input array to apply max pooling to.
+    pool_size: tuple
+        Size of the pooling window, must be 2D (heigth, width).
+
+    Returns
+    -------
+    np.ndarray
+        Output array with max pooling applied.
+    """
+    pool_heigth, pool_width = pool_size
+    height, width, feature_maps = x.shape
+
+    if pool_heigth > height or pool_width > width:
+        raise ValueError("Pool size must be smaller than input size.")
+
+    output = np.zeros(
+        (height // pool_heigth, width // pool_width, feature_maps))
+
+    for feature_map in range(feature_maps):
+        for i in range(0, height, pool_heigth):
+            for j in range(0, width, pool_width):
+                output[i // pool_heigth, j // pool_width, feature_map] = np\
+                    .max(
+                    x[i:i + pool_heigth, j:j + pool_width]
+                )
+
+    return output
+
+
+pooled_img = max_pooling(relu_img, (2, 2))
+plt.imshow(pooled_img)
+plt.show()
+
+# %% 
+def feature_map_norm(x):
+    """
+    Normalise values within each feature maps.
+
+    Normalises values to have zero mean and standard deviation of 0.
+
+    Parameters
+    ----------
+    x: np.ndarray, shape=(height, width, feature_maps)
+        Input array to normalise.
+
+    Returns
+    -------
+    np.ndarray
+        Output array with normalised values.
+    """
+    return (x - np.mean(x)) / np.std(x)
+
+norm_img = feature_map_norm(img)
+
+plt.imshow(norm_img, cmap="gray")
+plt.show()
+
+
+# %% 
+def create_fully_connected(x, weights):
+    """
+    Creates a fully connected layer.
+
+    x: np.ndarray, shape=(height, width, feature_maps)
+    weights: np.ndarray, shape=(n_input_layers, n_output_layers)
+
+    Returns
+    -------
+    np.ndarray
+        Output array with weights from fully connected layer applied.
+    """
+    return x.flatten() @ weights
+
+# %%
+n_inputs = norm_img.flatten().shape[0]
+random_weights = 2 * np.random.rand(n_inputs, 10) - 1
+output_activations = create_fully_connected(norm_img, random_weights)
+
+# %%
+def softmax(x):
+    """
+    Apply softmax to array.
+
+    Parameters
+    ----------
+    x: np.ndarray, shape=(n_inputs,)
+
+    Returns
+    -------
+    np.ndarray
+        Probability distribution over input array, sums to 1.
+    """
+    return np.exp(x) / np.sum(np.exp(x))
+
+softmax(output_activations)
