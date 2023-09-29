@@ -64,6 +64,21 @@ def evaluate_model(model, test_x, test_y):
                              y_test_raw) = keras.datasets.mnist.load_data()
 
 # %%
+
+indices = np.arange(len(x_train_raw))
+eights = indices[y_train_raw == 8]
+selected_index = np.take(eights, 1)
+eight = x_train_raw[selected_index]
+plt.imshow(eight, cmap="gray")
+plt.show()
+
+
+# %% 
+import matplotlib.image
+
+matplotlib.image.imsave('eight.png', eight)
+
+# %%
 # Check dimesions of the data
 print(x_train_raw.shape)
 print(x_test_raw.shape)
@@ -260,15 +275,15 @@ evaluate_model(dropout_cnn_model, x_test_spatial, y_test)
 """
 
 # %%
-(x_train, y_train), (x_test, y_test) = keras.datasets.cifar10.load_data()
+(x_train_cifar, y_train_cifar), (x_test_cifar, y_test_cifar) = keras.datasets.cifar10.load_data()
 
 # %%
-x_train = x_train / 255
-x_test = x_test / 255
+x_train_cifar = x_train_cifar / 255
+x_test_cifar = x_test_cifar / 255
 
 # %%
-y_train = keras.utils.to_categorical(y_train, 10)
-y_test = keras.utils.to_categorical(y_test, 10)
+y_train_cifar = keras.utils.to_categorical(y_train_cifar, 10)
+y_test_cifar = keras.utils.to_categorical(y_test_cifar, 10)
 
 # %%
 cifar_cnn = keras.Sequential()
@@ -305,12 +320,12 @@ cifar_cnn.compile(
 
 # %%
 cifar_cnn_history = cifar_cnn.fit(
-    x_train,
-    y_train,
+    x_train_cifar,
+    y_train_cifar,
     batch_size=32,
     epochs=20,
     verbose=1,
-    validation_data=(x_test, y_test),
+    validation_data=(x_test_cifar, y_test_cifar),
     shuffle=True
 )
 
